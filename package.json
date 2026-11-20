@@ -1,0 +1,10 @@
+{
+  "name": "@orbit/bridge",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "Reference runner for Orbit — polls actions, hands them to your agent, returns results.",
+  "license": "Apache-2.0",
+  "bin": { "orbit-bridge": "./bridge.mjs" },
+  "engines": { "node": ">=20" }
+}
