@@ -70,3 +70,25 @@ Claims are fenced: a bridge that loses its lease cannot complete the action, and
 - The runner key is workspace-scoped and cannot mint other keys.
 - Run the bridge on a machine you control. It makes outbound HTTPS calls only — no inbound ports.
 - Never commit the key. Keep it in an environment variable or a secret manager.
+
+## Supported actions
+
+The bridge dispatches every Orbit action type. Each handler asks your agent for one JSON object.
+
+| Action | What the agent is asked for | What the bridge does |
+|---|---|---|
+| `work.plan` | `{reply, plan:{goal,rationale,steps}, state:"awaiting_direction"}` | posts the plan to `/work/:id/agent-result` |
+| `work.explore` | `{reply, brief, state:"exploring"}` | posts the exploration result |
+| `work.execute` | `{reply, result:{summary,verified,links,remaining}, state:"completed"}` | posts the result |
+| `artifact.feedback` | `{reply, markdown, dispositions[]}` | creates a revision, completes the action |
+| `artifact.workflow` | revision or `{reply, review:{summary,findings[]}}` for review workflows | creates a revision or posts a review |
+| `artifact.masthead` | `{reply, asset:{filename,mime,dataBase64}}` | uploads the image and marks it active |
+| `artifact.publish` | `{reply, publication:{url}}` | records the publication — **requires `ORBIT_PUBLISH_ENABLED=1`** |
+| `inbox.decision` | `{reply}` | carries out the approved inbox action and reports |
+
+Notes:
+
+- Claims are fenced and completions are idempotent, so restarting the bridge cannot double-execute an action.
+- Publishing is disabled by default. It only runs when the operator sets `ORBIT_PUBLISH_ENABLED=1` **and** the action carries `options.confirm = true`.
+- Artifact writes require a runner key with `artifacts:write`. A runner key scoped only to `agent:run` can read the queue and complete Work sessions but cannot create revisions.
+- The bridge never invents results: if your agent fails, the error is reported back to Orbit and the action can be retried.
